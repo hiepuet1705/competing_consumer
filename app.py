@@ -6,7 +6,7 @@ connection_parameters = pika.ConnectionParameters('localhost')
 connection = pika.BlockingConnection(connection_parameters)
 channel = connection.channel()
 def on_message_received(ch, method, properties, body, consumer, text_widget):
-    processing_time = 2
+    processing_time = 3
     message = f'{consumer} received: "{body}", will take {processing_time} to process\n'
     text_widget.insert(tk.END, message)
     text_widget.see(tk.END)
@@ -24,7 +24,7 @@ def send_message():
         channel.basic_publish(exchange='', routing_key='letterbox', body=message)
         producer_text_widget.insert(tk.END, f"sent message: {message}\n")
         producer_text_widget.see(tk.END)
-        time.sleep(1)
+        time.sleep(2)
         messageId += 1
 
 def start_consumer(consumer, text_widget):
@@ -50,31 +50,54 @@ def start_consumers():
 
     consumer_thread_2 = threading.Thread(target=lambda: start_consumer("C2", consumer_text_widget_2))
     consumer_thread_2.daemon = True
+    consumer_thread_3 = threading.Thread(target=lambda: start_consumer("C3", consumer_text_widget_3))
+    consumer_thread_3.daemon = True
     consumer_thread_1.start()
     consumer_thread_2.start()
+    consumer_thread_3.start()
 
 # Tkinter GUI
 root = tk.Tk()
 root.title("Competing Consumer Demo")
 start_button = tk.Button(root, text="Start", command=lambda: [start_producer(), start_consumers()])
 
-producer_label = tk.Label(root, text="Producer:")
+producer_frame = tk.Frame(root)
+producer_frame.pack(side="left")
+
+producer_label = tk.Label(producer_frame, text="Producer:")
 producer_label.pack()
 
-producer_text_widget = tk.Text(root, height=12, width=150)
+producer_text_widget = tk.Text(producer_frame, height=20, width=80)
+producer_text_widget.config(background="black", foreground="white")
 producer_text_widget.pack()
 
-consumer_label_1 = tk.Label(root, text="Consumer 1:")
+# Widget consumers
+consumers_frame = tk.Frame(root)
+consumers_frame.pack(side="right")
+
+consumer_label_1 = tk.Label(consumers_frame, text="Consumer 1:")
 consumer_label_1.pack()
 
-consumer_text_widget_1 = tk.Text(root, height=12, width=150)
+consumer_text_widget_1 = tk.Text(consumers_frame, height=12, width=80)
+consumer_text_widget_1.config(background="black", foreground="white")
+
 consumer_text_widget_1.pack()
 
-consumer_label_2 = tk.Label(root, text="Consumer 2:")
+consumer_label_2 = tk.Label(consumers_frame, text="Consumer 2:")
 consumer_label_2.pack()
 
-consumer_text_widget_2 = tk.Text(root, height=12, width=150)
+consumer_text_widget_2 = tk.Text(consumers_frame, height=12, width=80)
+consumer_text_widget_2.config(background="black", foreground="white")
+
 consumer_text_widget_2.pack()
+
+consumer_label_3 = tk.Label(consumers_frame, text="Consumer 3:")
+consumer_label_3.pack()
+
+consumer_text_widget_3 = tk.Text(consumers_frame, height=12, width=80)
+consumer_text_widget_3.config(background="black", foreground="white")
+
+consumer_text_widget_3.pack()
 
 start_button.pack()
 
